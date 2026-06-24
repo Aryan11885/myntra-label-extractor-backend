@@ -1,6 +1,9 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.ocr_sku import extract_sku_from_pdf
+
 import fitz
 import cv2
 import numpy as np
@@ -9,9 +12,10 @@ import tempfile
 import os
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
-   allow_origins=["*"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -102,3 +106,32 @@ async def extract_label(file: UploadFile = File(...)):
         media_type="application/pdf",
         filename=f"label_{file.filename}"
     )
+
+
+@app.post("/ocr-test")
+async def ocr_test(
+    file: UploadFile = File(...)
+):
+
+    pdf_bytes = await file.read()
+
+    return extract_sku_from_pdf(
+        pdf_bytes
+    )
+
+
+@app.post("/process-pdf")
+async def process_pdf(
+    file: UploadFile = File(...)
+):
+
+    pdf_bytes = await file.read()
+
+    sku_data = extract_sku_from_pdf(
+        pdf_bytes
+    )
+
+    return {
+        "success": True,
+        "products": sku_data["products"]
+    }
