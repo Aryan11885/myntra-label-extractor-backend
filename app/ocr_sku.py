@@ -4,7 +4,18 @@ import numpy as np
 import cv2
 import re
 
-reader = easyocr.Reader(["en"])
+reader = None
+
+def get_reader():
+    global reader
+
+    if reader is None:
+        reader = easyocr.Reader(
+            ["en"],
+            gpu=False
+        )
+
+    return reader
 
 
 def extract_sku_from_pdf(pdf_bytes):
@@ -35,7 +46,7 @@ def extract_sku_from_pdf(pdf_bytes):
             cv2.COLOR_RGBA2RGB
         )
 
-    result = reader.readtext(
+    result = get_reader().readtext(
         img,
         detail=0
     )
@@ -76,3 +87,4 @@ def extract_sku_from_pdf(pdf_bytes):
     return {
         "products": products
     }
+
